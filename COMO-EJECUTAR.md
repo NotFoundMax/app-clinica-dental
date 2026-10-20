@@ -287,18 +287,30 @@ MySQL y del sistema operativo.
 
 ## Entrega
 
-El zip del proyecto debe incluir solo:
+El zip del proyecto debe incluir:
 
 - `pom.xml`
-- `src/`
+- `src/` (incluye las pruebas unitarias)
+- `README.md`
 - `COMO-EJECUTAR.md`
 - `.gitignore`
+- `.env.example`
+- `docker-compose.yml` (opcional, para MySQL local)
+- `.github/` (opcional, para integración continua)
 
-No incluyas `target/`, `.idea/`, archivos `.env` ni capturas de pantalla. La
-contraseña de MySQL se configura con `DB_PASSWORD` fuera del proyecto. Las
-cuentas `admin@dentalcare.pe` y `paciente@demo.pe` son cuentas de demostración
-creadas por `DataInitializer`; no son secretos de infraestructura y deben
-cambiarse en un despliegue real.
+No incluyas `target/`, `.idea/`, archivos `.env`, respaldos de base de datos ni
+capturas de pantalla. La contraseña de MySQL se configura con `DB_PASSWORD`
+fuera del proyecto. Las cuentas `admin@dentalcare.pe` y `paciente@demo.pe` son
+cuentas de demostración creadas por `DataInitializer`; no son secretos de
+infraestructura y deben cambiarse en un despliegue real.
+
+El repositorio de GitHub es la fuente de verdad. El zip de entrega se puede
+generar directamente desde un commit con:
+
+```bash
+git archive --format=zip --prefix=app-clinica-dental/ \
+  -o ../app-clinica-dental-entrega.zip HEAD
+```
 
 ## Nota para producción
 
