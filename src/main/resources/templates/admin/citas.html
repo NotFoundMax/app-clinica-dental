@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Panel de citas')}"></head>
+<body>
+
+<header th:replace="~{fragments/layout :: cabecera}"></header>
+
+<main class="contenedor pagina">
+
+    <div th:replace="~{fragments/layout :: alertas}"></div>
+
+    <section class="cabecera-pagina">
+        <div>
+            <p class="eyebrow">Administración</p>
+            <h1>Panel de citas</h1>
+            <p class="subtitulo">Confirma, atiende o cancela las citas de la clínica.</p>
+        </div>
+        <a class="boton boton-secundario" th:href="@{/admin/calendario}">Calendario general</a>
+    </section>
+
+    <div th:replace="~{fragments/layout :: subnavAdmin}"></div>
+
+    <section class="stats-admin">
+        <article class="tarjeta stat">
+            <span class="stat-num" th:text="${pendientes}">3</span>
+            <span class="stat-label">pendientes de confirmar</span>
+        </article>
+        <article class="tarjeta stat">
+            <span class="stat-num" th:text="${confirmadas}">5</span>
+            <span class="stat-label">confirmadas</span>
+        </article>
+        <article class="tarjeta stat">
+            <span class="stat-num" th:text="${citasHoy}">4</span>
+            <span class="stat-label">citas para hoy</span>
+        </article>
+    </section>
+
+    <form th:action="@{/admin/citas}" method="get" class="filtros">
+        <div class="campo">
+            <label for="fechaFiltro">Fecha</label>
+            <input type="date" id="fechaFiltro" name="fecha" th:value="${fechaFiltro}">
+        </div>
+        <div class="campo">
+            <label for="estadoFiltro">Estado</label>
+            <select id="estadoFiltro" name="estado">
+                <option value="">Todos</option>
+                <option th:each="e : ${estados}"
+                        th:value="${e}"
+                        th:text="${e.etiqueta}"
+                        th:selected="${estadoFiltro == e}">Pendiente</option>
+            </select>
+        </div>
+        <div class="form-acciones">
+            <button type="submit" class="boton boton-primario">Filtrar</button>
+            <a class="boton boton-fantasma" th:href="@{/admin/citas}">Limpiar</a>
+        </div>
+    </form>
+
+    <div th:if="${#lists.isEmpty(citas)}">
+        <div th:replace="~{fragments/layout :: vacio('No hay citas con ese filtro', 'Prueba con otra fecha o limpia los filtros para ver toda la agenda.')}"></div>
+    </div>
+
+    <div th:unless="${#lists.isEmpty(citas)}" class="tabla-wrap">
+        <table class="tabla">
+            <thead>
+            <tr>
+                <th scope="col">Fecha</th>
+                <th scope="col">Hora</th>
+                <th scope="col">Paciente</th>
+                <th scope="col">Especialista</th>
+                <th scope="col">Tratamiento</th>
+                <th scope="col">Estado</th>
+                <th scope="col">Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="c : ${citas}">
+                <td>
+                    <span class="celda-principal"
+                          th:text="${#temporals.format(c.fecha, 'dd/MM/yyyy')}">20/10/2026</span>
+                </td>
+                <td class="num" th:text="${#temporals.format(c.hora, 'HH:mm')}">09:30</td>
+                <td>
+                    <span class="celda-principal" th:text="${c.paciente.nombre}">Ana Torres</span>
+                </td>
+                <td>
+                    <span class="celda-principal" th:text="${c.odontologo.nombreCompleto}">Dra. Valeria Ríos</span>
+                    <span class="celda-suave" th:text="${c.odontologo.especialidad}">Odontología general</span>
+                </td>
+                <td>
+                    <span th:text="${c.servicio.nombre}">Limpieza dental</span>
+                    <span class="celda-suave"
+                          th:text="${c.servicio.duracionMinutos + ' min'}">45 min</span>
+                </td>
+                <td>
+                    <span class="badge"
+                          th:classappend="${'badge-' + c.estado.claseCss}"
+                          th:text="${c.estado.etiqueta}">Pendiente</span>
+                </td>
+                <td>
+                    <form th:if="${!#lists.isEmpty(c.estado.siguientes)}"
+                          th:action="@{/admin/citas/estado}"
+                          method="post"
+                          class="acciones-inline">
+                        <input type="hidden" name="citaId" th:value="${c.id}">
+                        <select name="estado" required aria-label="Nuevo estado de la cita">
+                            <option value="">Cambiar a...</option>
+                            <option th:each="s : ${c.estado.siguientes}"
+                                    th:value="${s}"
+                                    th:text="${s.etiqueta}">Confirmada</option>
+                        </select>
+                        <button type="submit" class="boton boton-secundario boton-sm">Actualizar</button>
+                    </form>
+                    <span th:if="${#lists.isEmpty(c.estado.siguientes)}" class="celda-suave">Finalizada</span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:src="@{/js/app.js}" defer></script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Auditoría')}"></head>
+<body>
+
+<header th:replace="~{fragments/layout :: cabecera}"></header>
+
+<main class="contenedor pagina">
+
+    <div th:replace="~{fragments/layout :: alertas}"></div>
+
+    <section class="cabecera-pagina">
+        <div>
+            <p class="eyebrow">Administración</p>
+            <h1>Auditoría</h1>
+            <p class="subtitulo">Registro de los eventos de seguridad y de las operaciones sobre la agenda.</p>
+        </div>
+    </section>
+
+    <div th:replace="~{fragments/layout :: subnavAdmin}"></div>
+
+    <section class="tarjeta nota-auditoria">
+        <h2>Criterio de registro</h2>
+        <p>Se registran accesos, cierres de sesión, intentos fallidos, cambios de estado de citas y altas del catálogo. Los correos y teléfonos se guardan enmascarados. Nunca se registran contraseñas, hashes, tokens ni motivos médicos.</p>
+    </section>
+
+    <form th:action="@{/admin/auditoria}" method="get" class="filtros">
+        <div class="campo">
+            <label for="accionFiltro">Acción</label>
+            <select id="accionFiltro" name="accion">
+                <option value="">Todas</option>
+                <option th:each="a : ${acciones}"
+                        th:value="${a}"
+                        th:text="${a}"
+                        th:selected="${accionFiltro == a}">LOGIN_EXITOSO</option>
+            </select>
+        </div>
+        <div class="form-acciones">
+            <button type="submit" class="boton boton-primario">Filtrar</button>
+            <a class="boton boton-fantasma" th:href="@{/admin/auditoria}">Limpiar</a>
+        </div>
+    </form>
+
+    <div th:if="${#lists.isEmpty(eventos)}">
+        <div th:replace="~{fragments/layout :: vacio('Sin eventos para ese filtro', 'Cuando ocurra una operación relevante, aparecerá en este registro.')}"></div>
+    </div>
+
+    <div th:unless="${#lists.isEmpty(eventos)}" class="tabla-wrap">
+        <table class="tabla">
+            <thead>
+            <tr>
+                <th scope="col">Fecha y hora</th>
+                <th scope="col">Acción</th>
+                <th scope="col">Usuario</th>
+                <th scope="col">IP</th>
+                <th scope="col">Detalle</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="e : ${eventos}">
+                <td class="num" th:text="${#temporals.format(e.fecha, 'dd/MM/yyyy HH:mm:ss')}">20/10/2026 09:30:00</td>
+                <td>
+                    <span class="badge badge-neutro" th:text="${e.accion}">LOGIN_EXITOSO</span>
+                </td>
+                <td th:text="${e.usuario != null ? e.usuario : 'Anónimo'}">a***@d***.pe</td>
+                <td class="num" th:text="${e.ip}">127.0.0.1</td>
+                <td class="detalle-auditoria" th:text="${e.detalle != null ? e.detalle : 'Sin detalle'}">citaId=12</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <p class="nota-ayuda">Se muestran los 200 eventos más recientes. El archivo de log conserva el historial completo.</p>
+
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:src="@{/js/app.js}" defer></script>
+</body>
+</html>

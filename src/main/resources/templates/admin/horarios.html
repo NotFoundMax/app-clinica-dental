@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Horarios')}"></head>
+<body>
+
+<header th:replace="~{fragments/layout :: cabecera}"></header>
+
+<main class="contenedor pagina">
+
+    <div th:replace="~{fragments/layout :: alertas}"></div>
+
+    <section class="cabecera-pagina">
+        <div>
+            <p class="eyebrow">Administración</p>
+            <h1>Horarios de atención</h1>
+            <p class="subtitulo">Define los bloques semanales de cada especialista. La agenda calcula las citas dentro de estos rangos.</p>
+        </div>
+        <a class="boton boton-secundario" th:href="@{/admin/odontologos}">Gestionar odontólogos</a>
+    </section>
+
+    <div th:replace="~{fragments/layout :: subnavAdmin}"></div>
+
+    <div th:if="${#lists.isEmpty(odontologos)}">
+        <div th:replace="~{fragments/layout :: vacio('Primero agrega un odontólogo', 'Los horarios se asignan a un especialista del catálogo.')}"></div>
+        <p class="centrado">
+            <a class="boton boton-primario" th:href="@{/admin/odontologos}">Ir a odontólogos</a>
+        </p>
+    </div>
+
+    <div th:unless="${#lists.isEmpty(odontologos)}">
+
+        <form th:action="@{/admin/horarios}" method="get" class="filtros">
+            <div class="campo">
+                <label for="filtroOdontologo">Odontólogo</label>
+                <select id="filtroOdontologo" name="odontologoId" onchange="this.form.submit()">
+                    <option th:each="o : ${odontologos}"
+                            th:value="${o.id}"
+                            th:selected="${odontologoSeleccionado != null and odontologoSeleccionado.id == o.id}"
+                            th:text="${o.nombreCompleto + ' · ' + o.especialidad}">Dra. Valeria Ríos · Odontología general</option>
+                </select>
+            </div>
+            <div class="form-acciones">
+                <button type="submit" class="boton boton-primario">Ver agenda</button>
+            </div>
+        </form>
+
+        <div class="catalogo-grid" th:if="${odontologoSeleccionado != null}">
+
+            <section>
+                <div class="seccion-cabecera">
+                    <div>
+                        <h2 th:text="${odontologoSeleccionado.nombreCompleto}">Dra. Valeria Ríos</h2>
+                        <p th:text="${odontologoSeleccionado.especialidad + ' · Consultorio ' + odontologoSeleccionado.consultorio}">Odontología general · Consultorio C-01</p>
+                    </div>
+                </div>
+
+                <div th:if="${#lists.isEmpty(horarios)}">
+                    <div th:replace="~{fragments/layout :: vacio('Sin bloques de atención', 'Agrega el primer bloque semanal para que este especialista tenga horarios disponibles.')}"></div>
+                </div>
+
+                <div th:unless="${#lists.isEmpty(horarios)}" class="tabla-wrap">
+                    <table class="tabla">
+                        <thead>
+                        <tr>
+                            <th scope="col">Día</th>
+                            <th scope="col">Inicio</th>
+                            <th scope="col">Fin</th>
+                            <th scope="col">Duración</th>
+                            <th scope="col">Acción</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="h : ${horarios}">
+                            <td>
+                                <span class="celda-principal" th:text="${h.diaEtiqueta}">Lunes</span>
+                            </td>
+                            <td class="num" th:text="${#temporals.format(h.horaInicio, 'HH:mm')}">08:00</td>
+                            <td class="num" th:text="${#temporals.format(h.horaFin, 'HH:mm')}">13:00</td>
+                            <td class="num" th:text="${h.duracionHoras}">5 h</td>
+                            <td>
+                                <form th:action="@{/admin/horarios/eliminar}"
+                                      method="post"
+                                      data-confirm="¿Eliminar este bloque de horario?">
+                                    <input type="hidden" name="horarioId" th:value="${h.id}">
+                                    <input type="hidden" name="odontologoId" th:value="${odontologoSeleccionado.id}">
+                                    <button type="submit" class="boton boton-peligro-fantasma boton-sm">Eliminar</button>
+                                </form>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <aside class="tarjeta catalogo-form">
+                <h2>Nuevo bloque</h2>
+                <p class="subtitulo">Los bloques se repiten cada semana. Un bloque de 08:00 a 13:00 genera citas de 30 minutos.</p>
+
+                <form th:action="@{/admin/horarios}"
+                      th:object="${horarioForm}"
+                      method="post"
+                      class="formulario">
+
+                    <div th:if="${#fields.hasGlobalErrors()}" class="alerta alerta-error" role="alert">
+                        <p th:each="err : ${#fields.globalErrors()}" th:text="${err}"></p>
+                    </div>
+
+                    <input type="hidden" name="odontologoId" th:value="${odontologoSeleccionado.id}">
+
+                    <div class="campo"
+                         th:classappend="${#fields.hasErrors('diaSemana') ? 'campo-error' : ''}">
+                        <label for="diaSemana">Día</label>
+                        <select th:field="*{diaSemana}" required>
+                            <option value="">Selecciona un día</option>
+                            <option value="1">Lunes</option>
+                            <option value="2">Martes</option>
+                            <option value="3">Miércoles</option>
+                            <option value="4">Jueves</option>
+                            <option value="5">Viernes</option>
+                            <option value="6">Sábado</option>
+                            <option value="7">Domingo</option>
+                        </select>
+                        <p class="mensaje-error" th:if="${#fields.hasErrors('diaSemana')}"
+                           th:errors="*{diaSemana}"></p>
+                    </div>
+
+                    <div class="campo-grid">
+                        <div class="campo"
+                             th:classappend="${#fields.hasErrors('horaInicio') ? 'campo-error' : ''}">
+                            <label for="horaInicio">Hora de inicio</label>
+                            <input type="time" th:field="*{horaInicio}" required>
+                            <p class="mensaje-error" th:if="${#fields.hasErrors('horaInicio')}"
+                               th:errors="*{horaInicio}"></p>
+                        </div>
+
+                        <div class="campo"
+                             th:classappend="${#fields.hasErrors('horaFin') ? 'campo-error' : ''}">
+                            <label for="horaFin">Hora de fin</label>
+                            <input type="time" th:field="*{horaFin}" required>
+                            <p class="mensaje-error" th:if="${#fields.hasErrors('horaFin')}"
+                               th:errors="*{horaFin}"></p>
+                        </div>
+                    </div>
+
+                    <p class="mensaje-error" th:if="${#fields.hasErrors('rangoValido')}"
+                       th:errors="*{rangoValido}"></p>
+
+                    <button type="submit" class="boton boton-primario">Agregar bloque</button>
+                </form>
+            </aside>
+
+        </div>
+
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:src="@{/js/app.js}" defer></script>
+</body>
+</html>

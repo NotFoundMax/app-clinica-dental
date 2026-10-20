@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Página no encontrada')}"></head>
+<body class="error-body">
+
+<main class="error-card">
+    <a class="brand brand-centro" th:href="@{/auth/login}" aria-label="Clínica Dental">
+        <span class="brand-mark" aria-hidden="true">cd</span>
+        <span class="brand-text">
+            <strong>Clínica Dental</strong>
+            <small>Agenda odontológica</small>
+        </span>
+    </a>
+
+    <p class="error-code">404</p>
+    <h1>Esta página no existe</h1>
+    <p th:text="${mensaje != null ? mensaje : 'El enlace que abriste no está disponible o cambió de dirección.'}">El enlace que abriste no está disponible o cambió de dirección.</p>
+
+    <div class="error-acciones">
+        <a th:if="${usuarioActual != null}" class="boton boton-primario" th:href="@{/auth/home}">Volver al inicio</a>
+        <a th:if="${usuarioActual == null}" class="boton boton-primario" th:href="@{/auth/login}">Iniciar sesión</a>
+    </div>
+</main>
+
+</body>
+</html>

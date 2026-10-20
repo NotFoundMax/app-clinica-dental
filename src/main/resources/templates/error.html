@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Algo salió mal')}"></head>
+<body class="error-body">
+
+<main class="error-card">
+    <a class="brand brand-centro" th:href="@{/auth/login}" aria-label="Clínica Dental">
+        <span class="brand-mark" aria-hidden="true">cd</span>
+        <span class="brand-text">
+            <strong>Clínica Dental</strong>
+            <small>Agenda odontológica</small>
+        </span>
+    </a>
+
+    <p class="error-code">Error</p>
+    <h1>Algo salió mal</h1>
+    <p th:text="${mensaje != null ? mensaje : 'No pudimos completar la operación. Intenta nuevamente en unos minutos.'}">No pudimos completar la operación. Intenta nuevamente en unos minutos.</p>
+
+    <div class="error-acciones">
+        <a th:if="${usuarioActual != null}" class="boton boton-primario" th:href="@{/auth/home}">Volver al inicio</a>
+        <a th:if="${usuarioActual == null}" class="boton boton-primario" th:href="@{/auth/login}">Iniciar sesión</a>
+    </div>
+</main>
+
+</body>
+</html>

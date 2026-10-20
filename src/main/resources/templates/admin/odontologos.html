@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Odontólogos')}"></head>
+<body>
+
+<header th:replace="~{fragments/layout :: cabecera}"></header>
+
+<main class="contenedor pagina">
+
+    <div th:replace="~{fragments/layout :: alertas}"></div>
+
+    <section class="cabecera-pagina">
+        <div>
+            <p class="eyebrow">Administración</p>
+            <h1>Odontólogos</h1>
+            <p class="subtitulo">Gestiona los especialistas que aparecen en la agenda de la clínica.</p>
+        </div>
+    </section>
+
+    <div th:replace="~{fragments/layout :: subnavAdmin}"></div>
+
+    <div class="catalogo-grid">
+
+        <section>
+            <div th:if="${#lists.isEmpty(odontologos)}">
+                <div th:replace="~{fragments/layout :: vacio('Aún no hay odontólogos', 'Agrega el primer especialista desde el formulario.')}"></div>
+            </div>
+
+            <div th:unless="${#lists.isEmpty(odontologos)}" class="tabla-wrap">
+                <table class="tabla">
+                    <thead>
+                    <tr>
+                        <th scope="col">Odontólogo</th>
+                        <th scope="col">Especialidad</th>
+                        <th scope="col">Contacto</th>
+                        <th scope="col">Consultorio</th>
+                        <th scope="col">Estado</th>
+                        <th scope="col">Acción</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="o : ${odontologos}">
+                        <td>
+                            <span class="celda-principal" th:text="${o.nombreCompleto}">Dra. Valeria Ríos</span>
+                            <span class="celda-suave" th:text="${o.correo}">valeria.rios@dentalcare.pe</span>
+                        </td>
+                        <td th:text="${o.especialidad}">Odontología general</td>
+                        <td class="num" th:text="${o.telefono}">987 654 321</td>
+                        <td th:text="${o.consultorio}">C-01</td>
+                        <td>
+                            <span class="badge"
+                                  th:classappend="${o.activo ? 'badge-activo' : 'badge-inactivo'}"
+                                  th:text="${o.activo ? 'Activo' : 'Inactivo'}">Activo</span>
+                        </td>
+                        <td>
+                            <form th:action="@{/admin/odontologos/estado}"
+                                  method="post"
+                                  th:attr="data-confirm=${o.activo ? '¿Desactivar a este odontólogo?' : '¿Activar a este odontólogo?'}">
+                                <input type="hidden" name="odontologoId" th:value="${o.id}">
+                                <button type="submit" class="boton boton-fantasma boton-sm"
+                                        th:text="${o.activo ? 'Desactivar' : 'Activar'}">Desactivar</button>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <aside class="tarjeta catalogo-form">
+            <h2>Nuevo odontólogo</h2>
+            <p class="subtitulo">El especialista aparecerá en el formulario de reserva si queda activo.</p>
+
+            <form th:action="@{/admin/odontologos}"
+                  th:object="${odontologoForm}"
+                  method="post"
+                  class="formulario">
+
+                <div th:if="${#fields.hasGlobalErrors()}" class="alerta alerta-error" role="alert">
+                    <p th:each="err : ${#fields.globalErrors()}" th:text="${err}"></p>
+                </div>
+
+                <div class="campo-grid">
+                    <div class="campo"
+                         th:classappend="${#fields.hasErrors('nombres') ? 'campo-error' : ''}">
+                        <label for="nombres">Nombres</label>
+                        <input type="text" th:field="*{nombres}" maxlength="80" required>
+                        <p class="mensaje-error" th:if="${#fields.hasErrors('nombres')}"
+                           th:errors="*{nombres}"></p>
+                    </div>
+                    <div class="campo"
+                         th:classappend="${#fields.hasErrors('apellidos') ? 'campo-error' : ''}">
+                        <label for="apellidos">Apellidos</label>
+                        <input type="text" th:field="*{apellidos}" maxlength="80" required>
+                        <p class="mensaje-error" th:if="${#fields.hasErrors('apellidos')}"
+                           th:errors="*{apellidos}"></p>
+                    </div>
+                </div>
+
+                <div class="campo"
+                     th:classappend="${#fields.hasErrors('especialidad') ? 'campo-error' : ''}">
+                    <label for="especialidad">Especialidad</label>
+                    <input type="text" th:field="*{especialidad}" maxlength="80" required>
+                    <p class="mensaje-error" th:if="${#fields.hasErrors('especialidad')}"
+                       th:errors="*{especialidad}"></p>
+                </div>
+
+                <div class="campo"
+                     th:classappend="${#fields.hasErrors('correo') ? 'campo-error' : ''}">
+                    <label for="correo">Correo</label>
+                    <input type="email" th:field="*{correo}" maxlength="120" required>
+                    <p class="mensaje-error" th:if="${#fields.hasErrors('correo')}"
+                       th:errors="*{correo}"></p>
+                </div>
+
+                <div class="campo-grid">
+                    <div class="campo"
+                         th:classappend="${#fields.hasErrors('telefono') ? 'campo-error' : ''}">
+                        <label for="telefono">Teléfono</label>
+                        <input type="tel" th:field="*{telefono}" maxlength="20">
+                        <p class="mensaje-error" th:if="${#fields.hasErrors('telefono')}"
+                           th:errors="*{telefono}"></p>
+                    </div>
+                    <div class="campo"
+                         th:classappend="${#fields.hasErrors('consultorio') ? 'campo-error' : ''}">
+                        <label for="consultorio">Consultorio</label>
+                        <input type="text" th:field="*{consultorio}" maxlength="20">
+                        <p class="mensaje-error" th:if="${#fields.hasErrors('consultorio')}"
+                           th:errors="*{consultorio}"></p>
+                    </div>
+                </div>
+
+                <button type="submit" class="boton boton-primario">Agregar odontólogo</button>
+            </form>
+        </aside>
+
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:src="@{/js/app.js}" defer></script>
+</body>
+</html>

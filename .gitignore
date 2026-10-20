@@ -1,0 +1,30 @@
+# Build
+target/
+*.class
+*.jar
+*.war
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Secretos y configuración local
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+logs/
+
+# Respaldos locales de base de datos
+*.sql.gz
+*dump*.sql
+
+# Paquetes de entrega
+*.zip

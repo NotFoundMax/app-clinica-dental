@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Mis citas')}"></head>
+<body>
+
+<header th:replace="~{fragments/layout :: cabecera}"></header>
+
+<main class="contenedor pagina">
+
+    <div th:replace="~{fragments/layout :: alertas}"></div>
+
+    <section class="cabecera-pagina">
+        <div>
+            <p class="eyebrow">Tu agenda</p>
+            <h1>Mis citas</h1>
+            <p class="subtitulo">Revisa tus próximas visitas y el historial de tu tratamiento.</p>
+        </div>
+        <a class="boton boton-primario" th:href="@{/citas/agendar}">Agendar cita</a>
+    </section>
+
+    <section class="bloque-citas">
+        <div class="seccion-cabecera">
+            <div>
+                <h2>Próximas</h2>
+                <p th:text="${#lists.size(proximas) == 1 ? '1 cita en tu agenda.' : #lists.size(proximas) + ' citas en tu agenda.'}">2 citas en tu agenda.</p>
+            </div>
+        </div>
+
+        <div th:if="${#lists.isEmpty(proximas)}">
+            <div th:replace="~{fragments/layout :: vacio('No tienes citas próximas', 'Reserva una nueva cita para verla aquí con su fecha, horario y especialista.')}"></div>
+        </div>
+
+        <div th:unless="${#lists.isEmpty(proximas)}" class="citas-panel">
+            <article th:each="c : ${proximas}" class="cita-panel">
+                <div class="cita-panel-fecha">
+                    <strong th:text="${#temporals.format(c.fecha, 'dd')}">14</strong>
+                    <span th:text="${#temporals.format(c.fecha, 'MMM', new java.util.Locale('es','PE'))}">oct</span>
+                    <small th:text="${#temporals.format(c.fecha, 'yyyy')}">2026</small>
+                </div>
+
+                <div class="cita-panel-cuerpo">
+                    <div class="cita-panel-cabecera">
+                        <h3 th:text="${c.servicio.nombre}">Limpieza dental</h3>
+                        <span class="badge"
+                              th:classappend="${'badge-' + c.estado.claseCss}"
+                              th:text="${c.estado.etiqueta}">Pendiente</span>
+                    </div>
+                    <p class="cita-panel-hora"
+                       th:text="${#temporals.format(c.hora, 'HH:mm') + ' a ' + #temporals.format(c.horaFin, 'HH:mm')}">09:30 a 10:15</p>
+                    <p class="cita-panel-meta"
+                       th:text="${c.odontologo.nombreCompleto + ' · ' + c.odontologo.especialidad + ' · ' + c.odontologo.consultorio}">Dra. Valeria Ríos · Odontología general · C-01</p>
+                    <p class="cita-panel-motivo" th:if="${not #strings.isEmpty(c.motivo)}">
+                        <span>Motivo:</span> <span th:text="${c.motivo}">Control</span>
+                    </p>
+                </div>
+
+                <div class="cita-panel-acciones">
+                    <form th:if="${c.puedeCancelar}"
+                          th:action="@{/citas/cancelar}"
+                          method="post"
+                          data-confirm="¿Seguro que quieres cancelar esta cita?">
+                        <input type="hidden" name="citaId" th:value="${c.id}">
+                        <button type="submit" class="boton boton-peligro-fantasma boton-sm">Cancelar</button>
+                    </form>
+                    <span th:unless="${c.puedeCancelar}" class="celda-suave">Sin acciones</span>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <section class="bloque-citas">
+        <div class="seccion-cabecera">
+            <div>
+                <h2>Historial</h2>
+                <p>Visitas atendidas y citas canceladas.</p>
+            </div>
+        </div>
+
+        <div th:if="${#lists.isEmpty(historial)}">
+            <div th:replace="~{fragments/layout :: vacio('Todavía no hay historial', 'Cuando pase tu primera cita, aparecerá en esta sección.')}"></div>
+        </div>
+
+        <div th:unless="${#lists.isEmpty(historial)}" class="citas-panel">
+            <article th:each="c : ${historial}" class="cita-panel cita-panel-historial">
+                <div class="cita-panel-fecha">
+                    <strong th:text="${#temporals.format(c.fecha, 'dd')}">14</strong>
+                    <span th:text="${#temporals.format(c.fecha, 'MMM', new java.util.Locale('es','PE'))}">oct</span>
+                    <small th:text="${#temporals.format(c.fecha, 'yyyy')}">2026</small>
+                </div>
+
+                <div class="cita-panel-cuerpo">
+                    <div class="cita-panel-cabecera">
+                        <h3 th:text="${c.servicio.nombre}">Limpieza dental</h3>
+                        <span class="badge"
+                              th:classappend="${'badge-' + c.estado.claseCss}"
+                              th:text="${c.estado.etiqueta}">Atendida</span>
+                    </div>
+                    <p class="cita-panel-hora"
+                       th:text="${#temporals.format(c.hora, 'HH:mm') + ' a ' + #temporals.format(c.horaFin, 'HH:mm')}">09:30 a 10:15</p>
+                    <p class="cita-panel-meta"
+                       th:text="${c.odontologo.nombreCompleto + ' · ' + c.odontologo.especialidad}">Dra. Valeria Ríos · Odontología general</p>
+                </div>
+
+                <div class="cita-panel-acciones">
+                    <a th:href="@{/citas/agendar}" class="enlace">Agendar de nuevo</a>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <p class="nota-ayuda">Puedes cancelar una cita futura hasta antes de su inicio. Si ya pasó, comunícate con la clínica.</p>
+
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:src="@{/js/app.js}" defer></script>
+</body>
+</html>

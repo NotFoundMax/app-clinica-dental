@@ -1,0 +1,41 @@
+# MySQL local opcional para desarrollo.
+#
+# Uso:
+#   cp .env.example .env
+#   # edita .env con tus claves
+#   docker compose up -d
+#
+# La aplicación se conecta con DB_USER y DB_PASSWORD. Si usas este contenedor,
+# usa los mismos valores de MYSQL_USER y MYSQL_PASSWORD.
+#
+# El script de esquema se ejecuta solo la primera vez que se crea el volumen.
+# Para volver a ejecutarlo desde cero:
+#   docker compose down -v
+#   docker compose up -d
+
+name: app-clinica-dental
+
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: clinica-dental-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-clinica_dental}
+      MYSQL_USER: ${MYSQL_USER:-clinica}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Define MYSQL_PASSWORD en .env}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Define MYSQL_ROOT_PASSWORD en .env}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./src/main/resources/db/scripts.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  mysql_data:

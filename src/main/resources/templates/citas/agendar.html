@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Agendar cita')}"></head>
+<body>
+
+<header th:replace="~{fragments/layout :: cabecera}"></header>
+
+<main class="contenedor pagina">
+
+    <div th:replace="~{fragments/layout :: alertas}"></div>
+
+    <nav class="migas" aria-label="Ruta de navegación">
+        <a th:href="@{/auth/home}">Inicio</a>
+        <span aria-hidden="true">/</span>
+        <span>Agendar cita</span>
+    </nav>
+
+    <section class="cabecera-pagina">
+        <div>
+            <p class="eyebrow">Reserva en línea</p>
+            <h1>Agenda tu cita</h1>
+            <p class="subtitulo">Elige especialista, tratamiento y fecha. Los horarios se calculan según la agenda real de la clínica.</p>
+        </div>
+    </section>
+
+    <div class="agenda-grid">
+
+        <div class="agenda-principal">
+
+            <section class="tarjeta paso" id="paso-1">
+                <div class="paso-cabecera">
+                    <span class="paso-num" aria-hidden="true">01</span>
+                    <div>
+                        <h2>Especialista, tratamiento y fecha</h2>
+                        <p>Primero revisamos qué horarios están libres.</p>
+                    </div>
+                </div>
+
+                <form th:action="@{/citas/agendar}"
+                      th:object="${cita}"
+                      method="get"
+                      class="formulario">
+
+                    <div th:if="${#fields.hasGlobalErrors()}" class="alerta alerta-error" role="alert">
+                        <p th:each="err : ${#fields.globalErrors()}" th:text="${err}"></p>
+                    </div>
+
+                    <div class="form-grid-3">
+                        <div class="campo"
+                             th:classappend="${#fields.hasErrors('odontologoId') ? 'campo-error' : ''}">
+                            <label for="odontologoId">Especialista</label>
+                            <select th:field="*{odontologoId}" required>
+                                <option value="">Selecciona un especialista</option>
+                                <option th:each="o : ${odontologos}"
+                                        th:value="${o.id}"
+                                        th:text="${o.nombreCompleto + ' · ' + o.especialidad}">Dra. Valeria Ríos · Odontología general</option>
+                            </select>
+                            <p class="mensaje-error" th:if="${#fields.hasErrors('odontologoId')}"
+                               th:errors="*{odontologoId}"></p>
+                        </div>
+
+                        <div class="campo"
+                             th:classappend="${#fields.hasErrors('servicioId') ? 'campo-error' : ''}">
+                            <label for="servicioId">Tratamiento</label>
+                            <select th:field="*{servicioId}" required>
+                                <option value="">Selecciona un tratamiento</option>
+                                <option th:each="s : ${servicios}"
+                                        th:value="${s.id}"
+                                        th:text="${s.nombre + ' · ' + s.duracionMinutos + ' min'}">Limpieza dental · 45 min</option>
+                            </select>
+                            <p class="mensaje-error" th:if="${#fields.hasErrors('servicioId')}"
+                               th:errors="*{servicioId}"></p>
+                        </div>
+
+                        <div class="campo"
+                             th:classappend="${#fields.hasErrors('fecha') ? 'campo-error' : ''}">
+                            <label for="fecha">Fecha</label>
+                            <input type="date"
+                                   th:field="*{fecha}"
+                                   th:min="${hoyISO}"
+                                   th:max="${limiteISO}"
+                                   required>
+                            <p class="mensaje-error" th:if="${#fields.hasErrors('fecha')}"
+                               th:errors="*{fecha}"></p>
+                        </div>
+                    </div>
+
+                    <div class="form-acciones">
+                        <button type="submit" class="boton boton-primario">Ver horarios</button>
+                        <span class="ayuda-campo">Agenda hasta 90 días adelante.</span>
+                    </div>
+                </form>
+
+                <div th:if="${#lists.isEmpty(odontologos) or #lists.isEmpty(servicios)}"
+                     class="alerta alerta-info">
+                    La clínica aún no tiene especialistas o tratamientos activos. Contacta a recepción.
+                </div>
+            </section>
+
+            <section class="tarjeta paso" id="paso-2" th:if="${horarios != null}">
+                <div class="paso-cabecera">
+                    <span class="paso-num" aria-hidden="true">02</span>
+                    <div>
+                        <h2>Selecciona un horario</h2>
+                        <p th:text="${'Disponibilidad para el ' + #temporals.format(fechaConsulta, 'EEEE d MMMM', new java.util.Locale('es','PE'))}">Disponibilidad para el miércoles 14 octubre</p>
+                    </div>
+                </div>
+
+                <div class="resumen-eleccion">
+                    <div>
+                        <span>Especialista</span>
+                        <strong th:text="${odontologoConsulta.nombreCompleto}">Dra. Valeria Ríos</strong>
+                    </div>
+                    <div>
+                        <span>Tratamiento</span>
+                        <strong th:text="${servicioConsulta.nombre + ' · ' + servicioConsulta.duracionMinutos + ' min'}">Limpieza dental · 45 min</strong>
+                    </div>
+                    <div>
+                        <span>Fecha</span>
+                        <strong th:text="${#temporals.format(fechaConsulta, 'dd/MM/yyyy')}">14/10/2026</strong>
+                    </div>
+                </div>
+
+                <div th:if="${sinHorarios}" class="vacio-inline">
+                    <h3>No hay horarios para esa fecha</h3>
+                    <p>Prueba con otro día o con otro especialista. La agenda cambia a medida que se reservan citas.</p>
+                    <a class="boton boton-fantasma boton-sm" th:href="@{/citas/agendar}">Probar otra fecha</a>
+                </div>
+
+                <form th:unless="${sinHorarios}"
+                      th:action="@{/citas/agendar}"
+                      th:object="${cita}"
+                      method="post"
+                      class="formulario">
+
+                    <input type="hidden" name="odontologoId" th:value="${cita.odontologoId}">
+                    <input type="hidden" name="servicioId" th:value="${cita.servicioId}">
+                    <input type="hidden" name="fecha" th:value="${cita.fecha}">
+
+                    <fieldset class="slots-grupo">
+                        <legend>Horarios disponibles</legend>
+                        <div class="slots">
+                            <label th:each="h : ${horarios}" class="slot">
+                                <input type="radio"
+                                       name="hora"
+                                       th:value="${h}"
+                                       th:checked="${cita.hora != null and cita.hora == h}"
+                                       required>
+                                <span th:text="${#temporals.format(h, 'HH:mm')}">09:30</span>
+                            </label>
+                        </div>
+                        <p class="mensaje-error" th:if="${#fields.hasErrors('hora')}"
+                           th:errors="*{hora}"></p>
+                    </fieldset>
+
+                    <div class="campo">
+                        <label for="motivo">Motivo de la consulta <span class="opcional">(opcional)</span></label>
+                        <textarea id="motivo"
+                                  th:field="*{motivo}"
+                                  rows="3"
+                                  maxlength="300"
+                                  placeholder="Cuéntanos brevemente qué necesitas. Evita incluir datos médicos sensibles."></textarea>
+                        <p class="mensaje-error" th:if="${#fields.hasErrors('motivo')}"
+                           th:errors="*{motivo}"></p>
+                    </div>
+
+                    <div class="form-acciones">
+                        <button type="submit" class="boton boton-primario">Confirmar cita</button>
+                        <a th:href="@{/citas/agendar}" class="boton boton-fantasma">Cambiar búsqueda</a>
+                    </div>
+                </form>
+            </section>
+
+            <div th:if="${horarios == null}" class="nota-agenda">
+                Selecciona especialista, tratamiento y fecha para ver los horarios disponibles.
+            </div>
+
+        </div>
+
+        <aside class="agenda-lateral">
+            <section class="tarjeta">
+                <h2>Cómo funciona</h2>
+                <ol class="lista-pasos">
+                    <li>
+                        <span aria-hidden="true">01</span>
+                        <div>
+                            <strong>Elige tu tratamiento</strong>
+                            <p>La duración se ajusta al bloque de atención.</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span aria-hidden="true">02</span>
+                        <div>
+                            <strong>Revisa los horarios</strong>
+                            <p>Solo verás espacios realmente libres.</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span aria-hidden="true">03</span>
+                        <div>
+                            <strong>Confirma y asiste</strong>
+                            <p>Puedes cancelar desde Mis citas si cambia tu plan.</p>
+                        </div>
+                    </li>
+                </ol>
+            </section>
+
+            <section class="tarjeta tarjeta-aviso">
+                <h3>Antes de reservar</h3>
+                <p>Llega 10 minutos antes y trae tu documento de identidad. Si tienes una urgencia, llama directamente a la clínica.</p>
+            </section>
+        </aside>
+
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:src="@{/js/app.js}" defer></script>
+</body>
+</html>

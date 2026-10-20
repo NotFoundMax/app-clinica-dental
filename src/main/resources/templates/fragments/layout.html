@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(titulo)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
+    <meta name="description" content="Agenda citas odontológicas en línea, elige especialista y horario, y revisa tu historial.">
+    <title th:text="${titulo + ' | Clínica Dental'}">Clínica Dental</title>
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">
+</head>
+<body>
+
+<header th:fragment="cabecera" class="topbar">
+    <div class="topbar-inner">
+        <a class="brand" th:href="@{/auth/home}" aria-label="Clínica Dental, ir al inicio">
+            <span class="brand-mark" aria-hidden="true">cd</span>
+            <span class="brand-text">
+                <strong>Clínica Dental</strong>
+                <small>Agenda odontológica</small>
+            </span>
+        </a>
+
+        <nav class="nav-principal" aria-label="Navegación principal">
+            <a th:href="@{/auth/home}"
+               th:classappend="${seccion == 'inicio' ? 'activo' : ''}">Inicio</a>
+            <a th:href="@{/citas/agendar}"
+               th:classappend="${seccion == 'agendar' ? 'activo' : ''}">Agendar</a>
+            <a th:href="@{/citas/mis-citas}"
+               th:classappend="${seccion == 'mis-citas' ? 'activo' : ''}">Mis citas</a>
+            <a th:href="@{/citas/calendario}"
+               th:classappend="${seccion == 'calendario' ? 'activo' : ''}">Calendario</a>
+            <a th:if="${esAdmin}" th:href="@{/admin/citas}"
+               th:classappend="${seccion != null and #strings.startsWith(seccion, 'admin') ? 'activo' : ''}">Administración</a>
+        </nav>
+
+        <div class="nav-usuario" th:if="${usuarioActual != null}">
+            <span class="avatar" th:text="${usuarioActual.iniciales}" aria-hidden="true">AT</span>
+            <span class="nav-usuario-datos">
+                <span th:text="${usuarioActual.nombre}">Ana Torres</span>
+                <small th:text="${usuarioActual.rolEtiqueta}">Paciente</small>
+            </span>
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="boton boton-fantasma boton-sm">Salir</button>
+            </form>
+        </div>
+
+        <a th:if="${usuarioActual == null}" class="boton boton-primario boton-sm"
+           th:href="@{/auth/login}">Ingresar</a>
+    </div>
+</header>
+
+<div th:fragment="alertas" class="alertas">
+    <div th:if="${mensaje}" class="alerta alerta-exito" role="status" th:text="${mensaje}"></div>
+    <div th:if="${error}" class="alerta alerta-error" role="alert" th:text="${error}"></div>
+</div>
+
+<nav th:fragment="subnavAdmin" class="subnav" aria-label="Administración">
+    <a th:href="@{/admin/citas}"
+       th:classappend="${seccion == 'admin-citas' ? 'activo' : ''}">Citas</a>
+    <a th:href="@{/admin/calendario}"
+       th:classappend="${seccion == 'admin-calendario' ? 'activo' : ''}">Calendario</a>
+    <a th:href="@{/admin/odontologos}"
+       th:classappend="${seccion == 'admin-odontologos' ? 'activo' : ''}">Odontólogos</a>
+    <a th:href="@{/admin/servicios}"
+       th:classappend="${seccion == 'admin-servicios' ? 'activo' : ''}">Tratamientos</a>
+    <a th:href="@{/admin/horarios}"
+       th:classappend="${seccion == 'admin-horarios' ? 'activo' : ''}">Horarios</a>
+    <a th:href="@{/admin/auditoria}"
+       th:classappend="${seccion == 'admin-auditoria' ? 'activo' : ''}">Auditoría</a>
+</nav>
+
+<footer th:fragment="footer" class="pie">
+    <div class="pie-inner">
+        <p><strong>Clínica Dental</strong> · Agenda odontológica</p>
+        <p>Proyecto académico 8C003 · <span th:text="${anioActual}">2026</span></p>
+    </div>
+</footer>
+
+<div th:fragment="vacio(titulo, detalle)" class="vacio">
+    <span class="vacio-linea" aria-hidden="true"></span>
+    <h3 th:text="${titulo}">Sin datos</h3>
+    <p th:text="${detalle}">Todavía no hay información para mostrar.</p>
+</div>
+
+</body>
+</html>

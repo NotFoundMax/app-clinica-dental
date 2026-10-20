@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Calendario')}"></head>
+<body>
+
+<header th:replace="~{fragments/layout :: cabecera}"></header>
+
+<main class="contenedor pagina">
+
+    <div th:replace="~{fragments/layout :: alertas}"></div>
+
+    <div th:if="${esAdmin and modoAdmin}">
+        <div th:replace="~{fragments/layout :: subnavAdmin}"></div>
+    </div>
+
+    <section class="cabecera-pagina">
+        <div>
+            <p class="eyebrow" th:text="${modoAdmin ? 'Administración' : 'Vista mensual'}">Vista mensual</p>
+            <h1 th:text="${modoAdmin ? 'Calendario de la clínica' : 'Mi calendario'}">Mi calendario</h1>
+            <p class="subtitulo"
+               th:text="${modoAdmin ? 'Todas las citas de la clínica en una vista mensual.' : 'Tus citas del mes, con su estado y especialista.'}">Tus citas del mes.</p>
+        </div>
+        <a th:unless="${modoAdmin}"
+           class="boton boton-primario"
+           th:href="@{/citas/agendar}">Agendar cita</a>
+    </section>
+
+    <div class="calendario-cabecera">
+        <div class="calendario-navegacion">
+            <a class="boton boton-fantasma boton-sm"
+               th:href="${rutaBase + '?mes=' + mesAnterior}"
+               aria-label="Mes anterior">← Anterior</a>
+            <h2 class="calendario-mes" th:text="${tituloMes}">Octubre 2026</h2>
+            <a class="boton boton-fantasma boton-sm"
+               th:href="${rutaBase + '?mes=' + mesSiguiente}"
+               aria-label="Mes siguiente">Siguiente →</a>
+        </div>
+        <a class="boton boton-secundario boton-sm"
+           th:href="${rutaBase + '?mes=' + mesHoy}">Volver a hoy</a>
+    </div>
+
+    <div class="calendario-scroll">
+        <div class="calendario">
+            <div class="calendario-semana" aria-hidden="true">
+                <span>Lun</span>
+                <span>Mar</span>
+                <span>Mié</span>
+                <span>Jue</span>
+                <span>Vie</span>
+                <span>Sáb</span>
+                <span>Dom</span>
+            </div>
+
+            <div class="calendario-grid">
+                <article th:each="d : ${dias}"
+                         class="dia"
+                         th:classappend="${(d.delMes ? '' : 'fuera ') + (d.hoy ? 'hoy' : '')}">
+                    <div class="dia-cabecera">
+                        <span th:text="${d.dia}">1</span>
+                        <span th:if="${d.hoy}" class="dia-hoy">Hoy</span>
+                    </div>
+
+                    <div class="dia-citas">
+                        <th:block th:each="c, i : ${d.citas}" th:if="${i.index < 3}">
+                            <a th:if="${modoAdmin}"
+                               th:href="@{/admin/citas}"
+                               class="chip"
+                               th:classappend="${'chip-' + c.estado.claseCss}"
+                               th:title="${c.paciente.nombre + ' · ' + c.servicio.nombre + ' · ' + c.odontologo.nombreCompleto}">
+                                <span th:text="${#temporals.format(c.hora, 'HH:mm')}">09:30</span>
+                                <span th:text="${c.paciente.nombre}">Ana Torres</span>
+                            </a>
+                            <a th:unless="${modoAdmin}"
+                               th:href="@{/citas/mis-citas}"
+                               class="chip"
+                               th:classappend="${'chip-' + c.estado.claseCss}"
+                               th:title="${c.servicio.nombre + ' · ' + c.odontologo.nombreCompleto}">
+                                <span th:text="${#temporals.format(c.hora, 'HH:mm')}">09:30</span>
+                                <span th:text="${c.servicio.nombre}">Limpieza</span>
+                            </a>
+                        </th:block>
+                        <span th:if="${#lists.size(d.citas) > 3}"
+                              class="chip-mas"
+                              th:text="${'+' + (#lists.size(d.citas) - 3)}">+2</span>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </div>
+
+    <div class="leyenda" aria-label="Referencia de estados">
+        <span class="badge badge-pendiente">Pendiente</span>
+        <span class="badge badge-confirmada">Confirmada</span>
+        <span class="badge badge-atendida">Atendida</span>
+        <span class="badge badge-cancelada">Cancelada</span>
+        <span class="leyenda-texto">El color indica el estado de cada cita.</span>
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:src="@{/js/app.js}" defer></script>
+</body>
+</html>

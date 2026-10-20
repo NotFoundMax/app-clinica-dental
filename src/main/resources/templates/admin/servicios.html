@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Tratamientos')}"></head>
+<body>
+
+<header th:replace="~{fragments/layout :: cabecera}"></header>
+
+<main class="contenedor pagina">
+
+    <div th:replace="~{fragments/layout :: alertas}"></div>
+
+    <section class="cabecera-pagina">
+        <div>
+            <p class="eyebrow">Administración</p>
+            <h1>Tratamientos</h1>
+            <p class="subtitulo">Define los servicios que los pacientes pueden reservar y su duración.</p>
+        </div>
+    </section>
+
+    <div th:replace="~{fragments/layout :: subnavAdmin}"></div>
+
+    <div class="catalogo-grid">
+
+        <section>
+            <div th:if="${#lists.isEmpty(servicios)}">
+                <div th:replace="~{fragments/layout :: vacio('Aún no hay tratamientos', 'Agrega el primer servicio desde el formulario.')}"></div>
+            </div>
+
+            <div th:unless="${#lists.isEmpty(servicios)}" class="tabla-wrap">
+                <table class="tabla">
+                    <thead>
+                    <tr>
+                        <th scope="col">Tratamiento</th>
+                        <th scope="col">Duración</th>
+                        <th scope="col">Precio</th>
+                        <th scope="col">Estado</th>
+                        <th scope="col">Acción</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="s : ${servicios}">
+                        <td>
+                            <span class="celda-principal" th:text="${s.nombre}">Limpieza dental</span>
+                            <span class="celda-suave" th:text="${s.descripcion}">Profilaxis y eliminación de sarro.</span>
+                        </td>
+                        <td class="num" th:text="${s.duracionMinutos + ' min'}">45 min</td>
+                        <td class="num" th:text="${'S/ ' + #numbers.formatDecimal(s.precio, 1, 2)}">S/ 120.00</td>
+                        <td>
+                            <span class="badge"
+                                  th:classappend="${s.activo ? 'badge-activo' : 'badge-inactivo'}"
+                                  th:text="${s.activo ? 'Activo' : 'Inactivo'}">Activo</span>
+                        </td>
+                        <td>
+                            <form th:action="@{/admin/servicios/estado}"
+                                  method="post"
+                                  th:attr="data-confirm=${s.activo ? '¿Desactivar este tratamiento?' : '¿Activar este tratamiento?'}">
+                                <input type="hidden" name="servicioId" th:value="${s.id}">
+                                <button type="submit" class="boton boton-fantasma boton-sm"
+                                        th:text="${s.activo ? 'Desactivar' : 'Activar'}">Desactivar</button>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <aside class="tarjeta catalogo-form">
+            <h2>Nuevo tratamiento</h2>
+            <p class="subtitulo">La duración define cuántos bloques de 30 minutos ocupa una cita.</p>
+
+            <form th:action="@{/admin/servicios}"
+                  th:object="${servicioForm}"
+                  method="post"
+                  class="formulario">
+
+                <div th:if="${#fields.hasGlobalErrors()}" class="alerta alerta-error" role="alert">
+                    <p th:each="err : ${#fields.globalErrors()}" th:text="${err}"></p>
+                </div>
+
+                <div class="campo"
+                     th:classappend="${#fields.hasErrors('nombre') ? 'campo-error' : ''}">
+                    <label for="nombre">Nombre</label>
+                    <input type="text" th:field="*{nombre}" maxlength="100" required>
+                    <p class="mensaje-error" th:if="${#fields.hasErrors('nombre')}"
+                       th:errors="*{nombre}"></p>
+                </div>
+
+                <div class="campo"
+                     th:classappend="${#fields.hasErrors('descripcion') ? 'campo-error' : ''}">
+                    <label for="descripcion">Descripción <span class="opcional">(opcional)</span></label>
+                    <textarea th:field="*{descripcion}" rows="3" maxlength="300"></textarea>
+                    <p class="mensaje-error" th:if="${#fields.hasErrors('descripcion')}"
+                       th:errors="*{descripcion}"></p>
+                </div>
+
+                <div class="campo-grid">
+                    <div class="campo"
+                         th:classappend="${#fields.hasErrors('duracionMinutos') ? 'campo-error' : ''}">
+                        <label for="duracionMinutos">Duración en minutos</label>
+                        <input type="number" th:field="*{duracionMinutos}" min="15" max="240" step="5" required>
+                        <p class="mensaje-error" th:if="${#fields.hasErrors('duracionMinutos')}"
+                           th:errors="*{duracionMinutos}"></p>
+                    </div>
+
+                    <div class="campo"
+                         th:classappend="${#fields.hasErrors('precio') ? 'campo-error' : ''}">
+                        <label for="precio">Precio en soles</label>
+                        <input type="number" th:field="*{precio}" min="0" step="0.01" required>
+                        <p class="mensaje-error" th:if="${#fields.hasErrors('precio')}"
+                           th:errors="*{precio}"></p>
+                    </div>
+                </div>
+
+                <button type="submit" class="boton boton-primario">Agregar tratamiento</button>
+            </form>
+        </aside>
+
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:src="@{/js/app.js}" defer></script>
+</body>
+</html>

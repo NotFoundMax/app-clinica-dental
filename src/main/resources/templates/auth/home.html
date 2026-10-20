@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Inicio')}"></head>
+<body>
+
+<header th:replace="~{fragments/layout :: cabecera}"></header>
+
+<main class="contenedor pagina">
+
+    <div th:replace="~{fragments/layout :: alertas}"></div>
+
+    <section class="cabecera-pagina">
+        <div>
+            <p class="eyebrow">Panel del paciente</p>
+            <h1>Hola, <span th:text="${usuario.nombre}">Ana</span>.</h1>
+            <p class="subtitulo">Este es el resumen de tu agenda en la clínica.</p>
+        </div>
+        <a class="boton boton-primario" th:href="@{/citas/agendar}">Agendar cita</a>
+    </section>
+
+    <div th:if="${esAdmin}" class="aviso-admin">
+        <div>
+            <strong>Estás en una cuenta administrativa.</strong>
+            <span>También puedes gestionar la agenda de toda la clínica.</span>
+        </div>
+        <a class="boton boton-secundario boton-sm" th:href="@{/admin/citas}">Ir al panel</a>
+    </div>
+
+    <section class="dashboard-grid">
+
+        <article class="tarjeta tarjeta-proxima">
+            <p class="tarjeta-etiqueta">Próxima cita</p>
+
+            <div th:if="${proxima != null}" class="proxima-contenido">
+                <div class="proxima-fecha">
+                    <span class="proxima-dia" th:text="${#temporals.format(proxima.fecha, 'dd')}">14</span>
+                    <span class="proxima-mes" th:text="${#temporals.format(proxima.fecha, 'MMM', new java.util.Locale('es','PE'))}">oct</span>
+                </div>
+                <h2 th:text="${#temporals.format(proxima.hora, 'HH:mm') + ' · ' + proxima.servicio.nombre}">09:30 · Limpieza dental</h2>
+                <p class="proxima-meta"
+                   th:text="${proxima.odontologo.nombreCompleto + ' · ' + proxima.odontologo.especialidad}">Dra. Valeria Ríos · Odontología general</p>
+                <div class="proxima-pie">
+                    <span class="badge"
+                          th:classappend="${'badge-' + proxima.estado.claseCss}"
+                          th:text="${proxima.estado.etiqueta}">Pendiente</span>
+                    <a th:href="@{/citas/mis-citas}" class="enlace">Ver detalle</a>
+                </div>
+            </div>
+
+            <div th:if="${proxima == null}" class="proxima-vacia">
+                <h2>Sin citas próximas</h2>
+                <p>Cuando reserves, tu próxima visita aparecerá aquí con todos los detalles.</p>
+                <a class="boton boton-claro boton-sm" th:href="@{/citas/agendar}">Reservar ahora</a>
+            </div>
+        </article>
+
+        <div class="dashboard-stats">
+            <article class="tarjeta stat">
+                <span class="stat-num" th:text="${totalProximas}">2</span>
+                <span class="stat-label">citas próximas</span>
+            </article>
+            <article class="tarjeta stat">
+                <span class="stat-num" th:text="${totalAtendidas}">4</span>
+                <span class="stat-label">citas atendidas</span>
+            </article>
+            <article class="tarjeta stat stat-enlace">
+                <a th:href="@{/citas/calendario}">Ver calendario <span aria-hidden="true">→</span></a>
+                <span class="stat-label">Tu mes completo</span>
+            </article>
+        </div>
+
+    </section>
+
+    <section class="dashboard-inferior">
+
+        <div class="bloque-lista">
+            <div class="seccion-cabecera">
+                <div>
+                    <h2>Próximas citas</h2>
+                    <p>Las siguientes visitas de tu agenda.</p>
+                </div>
+                <a th:href="@{/citas/mis-citas}" class="enlace">Ver todas</a>
+            </div>
+
+            <div th:if="${#lists.isEmpty(proximas)}">
+                <div th:replace="~{fragments/layout :: vacio('No tienes citas próximas', 'Agenda tu primera visita y aparecerá en este espacio.')}"></div>
+            </div>
+
+            <div th:unless="${#lists.isEmpty(proximas)}" class="lista-citas">
+                <article th:each="c : ${proximas}" class="cita-fila">
+                    <div class="cita-fecha">
+                        <strong th:text="${#temporals.format(c.fecha, 'dd')}">14</strong>
+                        <span th:text="${#temporals.format(c.fecha, 'MMM', new java.util.Locale('es','PE'))}">oct</span>
+                    </div>
+                    <div class="cita-datos">
+                        <h3 th:text="${c.servicio.nombre}">Limpieza dental</h3>
+                        <p th:text="${#temporals.format(c.hora, 'HH:mm') + ' · ' + c.odontologo.nombreCompleto}">09:30 · Dra. Valeria Ríos</p>
+                    </div>
+                    <span class="badge"
+                          th:classappend="${'badge-' + c.estado.claseCss}"
+                          th:text="${c.estado.etiqueta}">Pendiente</span>
+                </article>
+            </div>
+        </div>
+
+        <aside class="tarjeta accesos-rapidos">
+            <h2>Accesos rápidos</h2>
+            <p class="subtitulo">Todo lo que necesitas para mover tu agenda.</p>
+            <div class="accesos-lista">
+                <a th:href="@{/citas/agendar}">
+                    <span>Agendar una cita</span>
+                    <span aria-hidden="true">→</span>
+                </a>
+                <a th:href="@{/citas/mis-citas}">
+                    <span>Revisar mis citas</span>
+                    <span aria-hidden="true">→</span>
+                </a>
+                <a th:href="@{/citas/calendario}">
+                    <span>Abrir el calendario</span>
+                    <span aria-hidden="true">→</span>
+                </a>
+            </div>
+            <p class="nota-ayuda">Si cambia tu plan, puedes cancelar una cita futura desde Mis citas.</p>
+        </aside>
+
+    </section>
+
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:src="@{/js/app.js}" defer></script>
+</body>
+</html>
